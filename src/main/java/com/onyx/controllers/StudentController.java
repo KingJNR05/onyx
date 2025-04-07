@@ -3,7 +3,11 @@ package com.onyx.controllers;
 import com.onyx.model.Student;
 import com.onyx.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("bmpoza")
@@ -13,27 +17,26 @@ public class StudentController {
     private StudentService service;
 
     @PostMapping("student")
-    public String addStudent(@RequestBody Student student){
-         Student student1 = service.addStudent(student);
-         if(student1 != null)
-             return "success";
-         else
-             return "failed";
+    public ResponseEntity<Student> addStudent(@RequestBody Student student){
+        return service.addStudent(student);
     }
 
     @GetMapping("student/{studentId}")
     public Student getStudent(@PathVariable Long studentId){
         return service.getStudent(studentId);
+
     }
 
-    @PutMapping("student")
-    public Student updateStudent(@RequestBody Student student){
-        return service.addStudent(student);
+
+    @PutMapping("student/{studentId}")
+    public ResponseEntity<Student> updateStudent(@RequestBody Student student,@PathVariable Long studentId){
+        return service.updateStudent(student,studentId);
     }
 
     @DeleteMapping("student/{studentId}")
-    public void deleteStudent(@PathVariable Long studentId){
-         service.deleteStudent(studentId);
+    public ResponseEntity<Student> deleteStudent(@PathVariable Long studentId){
+        return service.deleteStudent(studentId);
     }
+
 
 }
