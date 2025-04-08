@@ -17,12 +17,12 @@ public class StudentController {
     private StudentService service;
 
     @PostMapping("student")
-    public ResponseEntity<Student> addStudent(@RequestBody Student student){
+    public ResponseEntity<String> addStudent(@RequestBody Student student){
         return service.addStudent(student);
     }
 
     @GetMapping("student/{studentId}")
-    public Student getStudent(@PathVariable Long studentId){
+    public ResponseEntity<Student> getStudent(@PathVariable Long studentId){
         return service.getStudent(studentId);
 
     }
@@ -34,7 +34,7 @@ public class StudentController {
     }
 
     @DeleteMapping("student/{studentId}")
-    public ResponseEntity<Student> deleteStudent(@PathVariable Long studentId){
+    public ResponseEntity<String> deleteStudent(@PathVariable Long studentId){
         return service.deleteStudent(studentId);
     }
 

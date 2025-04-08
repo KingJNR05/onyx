@@ -57,7 +57,7 @@ public class InvoiceService {
 
              // if invoice credit >= the monthly fee assign remainder to leftover
              if(prevInvoiceCredit.compareTo(feeStructure.getTotalFee())>= 0 ){
-                    // excess cash to be applied to next invoiceg
+                    // excess cash to be applied to next invoice
                  leftOverCredit = prevInvoiceCredit.subtract(feeStructure.getTotalFee());
 
                  prevInvoiceCredit = BigDecimal.ZERO;
