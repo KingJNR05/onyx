@@ -1,6 +1,7 @@
 package com.onyx.service;
 
 import com.onyx.Exceptions.FeeStructureNotFoundException;
+import com.onyx.Exceptions.InvoiceNotFoundException;
 import com.onyx.Exceptions.StudentNotFoundException;
 import com.onyx.model.FeeStructure;
 import com.onyx.model.Invoice;
@@ -11,11 +12,14 @@ import com.onyx.repository.InvoiceRepository;
 import com.onyx.repository.StudentRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -31,57 +35,68 @@ public class InvoiceService {
     @Autowired
     private FeeStructureRepository feeStructureRepo;
 
+    @Scheduled(cron = "0 0 0 1 * ?") // 1st of every month at midnight
+    public void createInvoice() {
 
-    public void createInvoice(Long studentId){
+        LocalDate today = LocalDate.now();
+        String currentMonth = today.getMonth().toString();
+        int currentYear = today.getYear();
 
-        // Get student and fee structure
-        Student student = studentRepo.findById(studentId).orElseThrow(()-> new StudentNotFoundException("Student Not Found"));
-        FeeStructure feeStructure = feeStructureRepo.findByGrade(student.getGrade()).orElseThrow(()-> new FeeStructureNotFoundException("Fee Structure Not Found"));
-
-        //Default credit amounts
-        BigDecimal prevInvoiceCredit = BigDecimal.ZERO;
-        BigDecimal leftOverCredit = BigDecimal.ZERO;
+        // Get students and fee structure
+        FeeStructure feeStructure;
+        List<Student> allStudents = studentRepo.findAll();
+        for (Student student : allStudents) {
+            Optional<Invoice> latestInvoice = invoiceRepo.findLatestInvoiceByStudentId(student.getId());
 
 
-        // gets previous invoice
-        Optional<Invoice> prevInvoice = invoiceRepo.findLatestInvoiceByStudentId(studentId);
+            boolean invoiceForThisMonthAlreadyExists = latestInvoice.isPresent()
+                    && latestInvoice.get().getMonth().equals(currentMonth)
+                    && latestInvoice.get().getYear() == currentYear;
 
-        if(prevInvoice.isPresent()) {
+            //create invoice only if it hasn't been created before
+            if(!invoiceForThisMonthAlreadyExists) {
+                feeStructure = feeStructureRepo.findByGrade(student.getGrade()).orElseThrow(() -> new FeeStructureNotFoundException("Fee Structure Not Found"));
 
-             //assign prev invoice credit amount
-             prevInvoiceCredit =  prevInvoice.get().getCreditAmount();
+                //Default credit amounts
+                BigDecimal prevInvoiceCredit = BigDecimal.ZERO;
+                BigDecimal leftOverCredit = BigDecimal.ZERO;
 
-             //prev credit amount set to zero as credit amount will be used on the next invoice
-             prevInvoice.get().setCreditAmount(BigDecimal.ZERO);
-             invoiceRepo.save(prevInvoice.get());
+                if(latestInvoice.isPresent()){
+                // gets previous invoice
+                Invoice prevInvoice = latestInvoice.get();
 
-             // if invoice credit >= the monthly fee assign remainder to leftover
-             if(prevInvoiceCredit.compareTo(feeStructure.getTotalFee())>= 0 ){
-                    // excess cash to be applied to next invoice
-                 leftOverCredit = prevInvoiceCredit.subtract(feeStructure.getTotalFee());
+                //assign prev invoice credit amount
+                prevInvoiceCredit = prevInvoice.getCreditAmount();
 
-                 prevInvoiceCredit = BigDecimal.ZERO;
-             }
+                //prev credit amount set to zero as credit amount will be used on the next invoice
+                prevInvoice.setCreditAmount(BigDecimal.ZERO);
+                invoiceRepo.save(prevInvoice);
 
+                    // if invoice credit >= the monthly fee assign remainder to leftover
+                    if (prevInvoiceCredit.compareTo(feeStructure.getTotalFee()) >= 0) {
+                        // excess cash to be applied to next invoice
+                        leftOverCredit = prevInvoiceCredit.subtract(feeStructure.getTotalFee());
+
+                        prevInvoiceCredit = BigDecimal.ZERO;
+                    }
+                }
+
+                BigDecimal feeToBePaid = feeStructure.getTotalFee();
+                BigDecimal discount = BigDecimal.ZERO;
+                InvoiceStatus status = InvoiceStatus.Pending;
+                BigDecimal remainingFeeToBePaid = feeStructure.getTotalFee().subtract(prevInvoiceCredit);
+
+                Invoice invoice = new Invoice(
+                        student, currentMonth, currentYear, feeToBePaid,
+                        discount, remainingFeeToBePaid,
+                        status, LocalDate.now().plus(Period.of(0, 3, 0)),
+                        leftOverCredit
+                );
+
+
+                invoiceRepo.save(invoice);
+
+            }
         }
-
-        String month =  LocalDate.now().getMonth().toString();
-        int year = LocalDate.now().getYear();
-        BigDecimal feeToBePaid = feeStructure.getTotalFee();
-        BigDecimal discount = BigDecimal.ZERO;
-        InvoiceStatus status = InvoiceStatus.Pending;
-        BigDecimal remainingFeeToBePaid = feeStructure.getTotalFee().subtract(prevInvoiceCredit);
-
-        Invoice invoice = new Invoice(
-                                    student, month, year, feeToBePaid,
-                                    discount, remainingFeeToBePaid,
-                                    status,  LocalDate.now().plus(Period.of(0,3,0)),
-                                    leftOverCredit
-        );
-
-
-        invoiceRepo.save(invoice);
-
     }
-
 }

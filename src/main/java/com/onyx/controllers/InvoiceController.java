@@ -12,9 +12,9 @@ public class InvoiceController {
     @Autowired
     private InvoiceService service;
 
-    @PostMapping("invoice/{studentId}")
-    public void createInvoice(@PathVariable Long studentId){
-        service.createInvoice(studentId);
+    @PostMapping("invoice")
+    public void createInvoice(Long studentId){
+        service.createInvoice();
     }
 
 

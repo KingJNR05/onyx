@@ -14,12 +14,7 @@ public class FeePaymentController {
 
     @PostMapping("payment")
     public void payment(@RequestBody FeePaymentDetails details){
-
         service.payment(details);
     }
-
-//    @GetMapping("payment")
-//    public FeePayment payment()
-
 
 }
