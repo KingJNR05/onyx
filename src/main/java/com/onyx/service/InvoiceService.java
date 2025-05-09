@@ -99,4 +99,12 @@ public class InvoiceService {
             }
         }
     }
+
+
+    public Long getInvoiceId(Long studentId){
+        return invoiceRepo.getInvoiceId(studentId).orElseThrow(()-> new InvoiceNotFoundException("Invoice not Found"));
+    }
+
+
+
 }

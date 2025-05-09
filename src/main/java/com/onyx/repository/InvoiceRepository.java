@@ -19,4 +19,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice,Long> {
 
     @Query(value = "SELECT * FROM invoice WHERE student_id = :studentId ORDER BY id DESC LIMIT(1)", nativeQuery = true)
     Optional<Invoice> findLatestInvoiceByStudentId(Long studentId);
+
+    @Query(value = "SELECT id FROM invoice WHERE status = 'Pending' AND student_id = :student_id LIMIT(1)", nativeQuery = true)
+    Optional<Long> getInvoiceId(Long studentId);
 }

@@ -12,7 +12,7 @@ public class FeePaymentDetails {
         this.invoice_id = invoice_id;
         this.student_id = student_id;
         this.amount_paid = amount_paid;
-        Payment_method = payment_method;
+        this.Payment_method = payment_method;
     }
 
     public FeePaymentDetails(){

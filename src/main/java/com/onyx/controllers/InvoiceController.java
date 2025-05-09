@@ -13,7 +13,7 @@ public class InvoiceController {
     private InvoiceService service;
 
     @PostMapping("invoice")
-    public void createInvoice(Long studentId){
+    public void createInvoice(){
         service.createInvoice();
     }
 

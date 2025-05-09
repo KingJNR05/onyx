@@ -24,7 +24,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.
             csrf(customizer -> customizer.disable()).
-            authorizeHttpRequests(customizer -> customizer.anyRequest().authenticated()).
+            authorizeHttpRequests(customizer -> customizer.requestMatchers("bmpoza/students/count","bmpoza/student").permitAll().anyRequest().authenticated()).
             httpBasic(Customizer.withDefaults()).
             sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

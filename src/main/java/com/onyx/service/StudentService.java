@@ -97,5 +97,11 @@ public class StudentService {
     }
 
 
+    public Long countStudents() {
+        return repo.count();
+    }
 
+    public List<Student> getStudents() {
+        return repo.findAll();
+    }
 }

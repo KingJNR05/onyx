@@ -79,4 +79,9 @@ public class FeePaymentService {
 
         }
     }
+
+
+    public List<FeePayment> getPayments(Long studentId) {
+       return feePaymentRepo.findByStudentId(studentId);
+    }
 }
